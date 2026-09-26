@@ -19,7 +19,7 @@ void createAccount()
         printf("\nError opening file!\n");
         return;
     }
-    printf("\n========== CREATE ACCOUNT ==========\n");
+    printf("\n  CREATE ACCOUNT  \n");
     printf("Enter Account Number : ");
     scanf("%d", &account.accountNo);
     printf("Enter Account Holder Name : ");
@@ -48,7 +48,7 @@ void deposit()
         return;
     }
     fread(&account, sizeof(account), 1, fp);
-    printf("\n========== DEPOSIT MONEY ==========\n");
+    printf("\n   DEPOSIT MONEY    \n");
     printf("Enter deposit amount : ");
     scanf("%f", &amount);
     if (amount <= 0)
@@ -77,7 +77,7 @@ void withdraw()
         return;
     }
     fread(&account, sizeof(account), 1, fp);
-    printf("\n========== WITHDRAW MONEY ==========\n");
+    printf("\n  WITHDRAW MONEY   \n");
     printf("Enter withdrawal amount : ");
     scanf("%f", &amount);
     if (amount <= 0)
@@ -113,7 +113,7 @@ void balanceEnquiry()
     }
     fread(&account, sizeof(account), 1, fp);
     fclose(fp);
-    printf("\n========== BALANCE ENQUIRY ==========\n");
+    printf("\n BALANCE ENQUIRY  \n");
     printf("Account Number : %d\n", account.accountNo);
     printf("Account Holder : %s\n", account.name);
     printf("Current Balance: Rs. %.2f\n", account.balance);
