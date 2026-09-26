@@ -75,5 +75,6 @@ int main()
                 printf("\nInvalid choice!\n");
         }
     } while (choice != 3);
+     printf("\n  PROGRAM COMPLETED SUCCESSFULLY!\n");
     return 0;
 }
