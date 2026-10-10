@@ -1,157 +1,110 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
 #define FILE_NAME "bank.dat"
-struct BankAccount
+
+struct Bank
 {
-    int accountNo;
+    int accNo;
     char name[50];
     float balance;
 };
-/* Function to create a new account */
+
 void createAccount()
 {
     FILE *fp;
-    struct BankAccount account;
+    struct Bank b;
+
+    printf("Enter Account No: ");
+    scanf("%d", &b.accNo);
+
+    printf("Enter Name: ");
+    scanf(" %49[^\n]", b.name);
+
+    printf("Enter Initial Balance: ");
+    scanf("%f", &b.balance);
+
+    if (b.accNo <= 0 || b.balance < 0)
+    {
+        printf("Invalid details!\n");
+        return;
+    }
+
     fp = fopen(FILE_NAME, "wb");
     if (fp == NULL)
-    {
-        printf("\nError opening file!\n");
         return;
-    }
-    printf("\n  CREATE ACCOUNT  \n");
-    printf("Enter Account Number : ");
-    scanf("%d", &account.accountNo);
-    printf("Enter Account Holder Name : ");
-    scanf(" %[^\n]", account.name);
-    printf("Enter Initial Balance : ");
-    scanf("%f", &account.balance);
-    if (account.balance < 0)
-    {
-        printf("\nInitial balance cannot be negative!\n");
-        fclose(fp);
-        return;
-    }
-    fwrite(&account, sizeof(account), 1, fp);
+
+    fwrite(&b, sizeof(b), 1, fp);
     fclose(fp);
-    printf("\nAccount created successfully!\n");
+
+    printf("Account Created Successfully!\n");
 }
-void deposit()
+
+void transaction(int type)
 {
-    FILE *fp;
-    struct BankAccount account;
+    FILE *fp = fopen(FILE_NAME, "rb+");
+    struct Bank b;
     float amount;
-    fp = fopen(FILE_NAME, "rb+");
-    if (fp == NULL)
+
+    if (fp == NULL || fread(&b, sizeof(b), 1, fp) != 1)
     {
-        printf("\nNo bank account found!\n");
+        printf("No account found!\n");
+        if (fp != NULL) fclose(fp);
         return;
     }
-    fread(&account, sizeof(account), 1, fp);
-    printf("\n   DEPOSIT MONEY    \n");
-    printf("Enter deposit amount : ");
-    scanf("%f", &amount);
-    if (amount <= 0)
+
+    if (type == 1 || type == 2)
     {
-        printf("\nInvalid deposit amount!\n");
-        fclose(fp);
-        return;
+        printf("Enter Amount: ");
+        if (scanf("%f", &amount) != 1 || amount <= 0)
+        {
+            printf("Invalid amount!\n");
+            fclose(fp);
+            return;
+        }
+
+        if (type == 1)
+            b.balance += amount;
+        else if (amount <= b.balance)
+            b.balance -= amount;
+        else
+        {
+            printf("Insufficient Balance!\n");
+            fclose(fp);
+            return;
+        }
+
+        rewind(fp);
+        fwrite(&b, sizeof(b), 1, fp);
+        printf("Transaction Successful!\n");
     }
-    account.balance = account.balance + amount;
-    rewind(fp);
-    fwrite(&account, sizeof(account), 1, fp);
+
+    printf("Account: %d\nName: %s\nBalance: Rs. %.2f\n",
+           b.accNo, b.name, b.balance);
+
     fclose(fp);
-    printf("\nAmount deposited successfully!\n");
-    printf("Deposited Amount : Rs. %.2f\n", amount);
-    printf("New Balance      : Rs. %.2f\n", account.balance);
 }
-void withdraw()
-{
-    FILE *fp;
-    struct BankAccount account;
-    float amount;
-    fp = fopen(FILE_NAME, "rb+");
-    if (fp == NULL)
-    {
-        printf("\nNo bank account found!\n");
-        return;
-    }
-    fread(&account, sizeof(account), 1, fp);
-    printf("\n  WITHDRAW MONEY   \n");
-    printf("Enter withdrawal amount : ");
-    scanf("%f", &amount);
-    if (amount <= 0)
-    {
-        printf("\nInvalid withdrawal amount!\n");
-        fclose(fp);
-        return;
-    }
-    if (amount > account.balance)
-    {
-        printf("\nInsufficient balance!\n");
-        printf("Available Balance : Rs. %.2f\n", account.balance);
-        fclose(fp);
-        return;
-    }
-    account.balance = account.balance - amount;
-    rewind(fp);
-    fwrite(&account, sizeof(account), 1, fp);
-    fclose(fp);
-    printf("\nAmount withdrawn successfully!\n");
-    printf("Withdrawn Amount : Rs. %.2f\n", amount);
-    printf("Remaining Balance : Rs. %.2f\n", account.balance);
-}
-void balanceEnquiry()
-{
-    FILE *fp;
-    struct BankAccount account;
-    fp = fopen(FILE_NAME, "rb");
-    if (fp == NULL)
-    {
-        printf("\nNo bank account found!\n");
-        return;
-    }
-    fread(&account, sizeof(account), 1, fp);
-    fclose(fp);
-    printf("\n BALANCE ENQUIRY  \n");
-    printf("Account Number : %d\n", account.accountNo);
-    printf("Account Holder : %s\n", account.name);
-    printf("Current Balance: Rs. %.2f\n", account.balance);
-}
+
 int main()
 {
     int choice;
+
     do
     {
-        printf("BANK ACCOUNT MANAGEMENT\n");
-        printf("1. Create Account\n");
-        printf("2. Deposit Money\n");
-        printf("3. Withdraw Money\n");
-        printf("4. Balance Enquiry\n");
-        printf("5. Exit\n");
-        printf("Enter your choice : ");
-        scanf("%d", &choice);
+        printf("\n1.Create Account\n2.Deposit\n3.Withdraw\n");
+        printf("4.Balance Enquiry\n5.Exit\nChoice: ");
+        if (scanf("%d", &choice) != 1)
+            return 1;
+
         switch (choice)
         {
-            case 1:
-                createAccount();
-                break;
-            case 2:
-                deposit();
-                break;
-            case 3:
-                withdraw();
-                break;
-            case 4:
-                balanceEnquiry();
-                break;
-            case 5:
-                printf("\nThank you for using the Banking System!\n");
-                break;
-            default:
-                printf("\nInvalid choice! Please try again.\n");
+            case 1: createAccount(); break;
+            case 2: transaction(1); break;
+            case 3: transaction(2); break;
+            case 4: transaction(0); break;
+            case 5: printf("Thank you!\n"); break;
+            default: printf("Invalid choice!\n");
         }
     } while (choice != 5);
-      printf("\n  PROGRAM COMPLETED SUCCESSFULLY!\n");
+
     return 0;
 }
